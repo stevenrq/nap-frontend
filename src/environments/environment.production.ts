@@ -10,5 +10,5 @@
  */
 export const environment = {
   production: true,
-  apiBaseUrl: 'https://CAMBIAME.example.com/api',
+  apiBaseUrl: 'https://nap-backend.onrender.com/api',
 };
