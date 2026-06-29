@@ -1,0 +1,137 @@
+<main class="min-h-dvh bg-gray-50 px-4 py-10">
+  <div class="mx-auto max-w-2xl space-y-8">
+    <header class="flex items-center gap-4">
+      <a
+        routerLink="/home"
+        class="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
+      >
+        ← Inicio
+      </a>
+      <h1 class="text-2xl font-semibold text-gray-900">Mi perfil</h1>
+    </header>
+
+    @if (loading()) {
+      <p class="text-sm text-gray-500">Cargando tu perfil…</p>
+    }
+
+    @if (loadError(); as error) {
+      <p role="alert" class="rounded-md bg-red-50 px-4 py-3 text-sm text-red-700">{{ error }}</p>
+    }
+
+    @if (ownUser(); as user) {
+      <section class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <p class="text-sm text-gray-600">
+          Editando la cuenta <strong>{{ user.username }}</strong> (#{{ user.id }}). Los roles solo
+          puede cambiarlos un administrador.
+        </p>
+
+        <form class="mt-4 space-y-4" (submit)="$event.preventDefault(); onSubmit()" novalidate>
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <label for="firstName" class="block text-sm font-medium text-gray-700">Nombre</label>
+              <input
+                id="firstName"
+                type="text"
+                autocomplete="given-name"
+                [formField]="form.firstName"
+                class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600"
+              />
+              @if (showError(form.firstName)) {
+                <p class="mt-1 text-sm text-red-700">{{ form.firstName().errors()[0]?.message }}</p>
+              }
+            </div>
+            <div>
+              <label for="lastName" class="block text-sm font-medium text-gray-700">Apellido</label>
+              <input
+                id="lastName"
+                type="text"
+                autocomplete="family-name"
+                [formField]="form.lastName"
+                class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600"
+              />
+              @if (showError(form.lastName)) {
+                <p class="mt-1 text-sm text-red-700">{{ form.lastName().errors()[0]?.message }}</p>
+              }
+            </div>
+            <div>
+              <label for="email" class="block text-sm font-medium text-gray-700">Correo</label>
+              <input
+                id="email"
+                type="email"
+                autocomplete="email"
+                [formField]="form.email"
+                class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600"
+              />
+              @if (showError(form.email)) {
+                <p class="mt-1 text-sm text-red-700">{{ form.email().errors()[0]?.message }}</p>
+              }
+            </div>
+            <div>
+              <label for="phoneNumber" class="block text-sm font-medium text-gray-700"
+                >Teléfono</label
+              >
+              <input
+                id="phoneNumber"
+                type="text"
+                inputmode="numeric"
+                autocomplete="tel"
+                [formField]="form.phoneNumber"
+                class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600"
+              />
+              @if (showError(form.phoneNumber)) {
+                <p class="mt-1 text-sm text-red-700">
+                  {{ form.phoneNumber().errors()[0]?.message }}
+                </p>
+              }
+            </div>
+            <div>
+              <label for="username" class="block text-sm font-medium text-gray-700">Usuario</label>
+              <input
+                id="username"
+                type="text"
+                autocomplete="username"
+                [formField]="form.username"
+                class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600"
+              />
+              @if (showError(form.username)) {
+                <p class="mt-1 text-sm text-red-700">{{ form.username().errors()[0]?.message }}</p>
+              }
+            </div>
+            <div>
+              <label for="password" class="block text-sm font-medium text-gray-700">
+                Contraseña (opcional)
+              </label>
+              <input
+                id="password"
+                type="password"
+                autocomplete="new-password"
+                placeholder="Dejar en blanco para no cambiarla"
+                [formField]="form.password"
+                class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600"
+              />
+            </div>
+          </div>
+
+          @if (saveError(); as error) {
+            <p role="alert" class="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
+              {{ error }}
+            </p>
+          }
+          @if (saveSuccess(); as message) {
+            <p role="status" class="rounded-md bg-green-50 px-3 py-2 text-sm text-green-700">
+              {{ message }}
+            </p>
+          }
+
+          <button
+            type="submit"
+            [disabled]="form().submitting()"
+            class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 disabled:opacity-60"
+          >
+            {{ form().submitting() ? 'Guardando…' : 'Guardar cambios' }}
+          </button>
+        </form>
+      </section>
+    }
+  </div>
+</main>

@@ -1,0 +1,433 @@
+<main class="min-h-dvh bg-gray-50 px-4 py-10">
+  <div class="mx-auto max-w-4xl space-y-8">
+    <header class="flex items-center gap-4">
+      <a
+        routerLink="/home"
+        class="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
+      >
+        ← Inicio
+      </a>
+      <h1 class="text-2xl font-semibold text-gray-900">Gestión de usuarios</h1>
+    </header>
+
+    @if (canReadUsers()) {
+      <section
+        class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm"
+        aria-labelledby="all-users-title"
+      >
+        <div class="flex items-center justify-between gap-4">
+          <h2 id="all-users-title" class="text-lg font-semibold text-gray-900">
+            Todos los usuarios
+          </h2>
+          <button
+            type="button"
+            (click)="loadAll()"
+            [disabled]="usersLoading()"
+            class="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 disabled:opacity-60"
+          >
+            {{ usersLoading() ? 'Cargando…' : 'Recargar' }}
+          </button>
+        </div>
+
+        @if (usersError(); as error) {
+          <p
+            role="alert"
+            aria-live="assertive"
+            class="mt-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700"
+          >
+            {{ error }}
+          </p>
+        }
+
+        @if (deleteError(); as error) {
+          <p
+            role="alert"
+            aria-live="assertive"
+            class="mt-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700"
+          >
+            {{ error }}
+          </p>
+        }
+
+        @if (deleteSuccessId(); as id) {
+          <p
+            role="status"
+            aria-live="polite"
+            class="mt-4 rounded-md bg-green-50 px-3 py-2 text-sm text-green-700"
+          >
+            Usuario #{{ id }} eliminado correctamente.
+          </p>
+        }
+
+        @if (!usersLoading() && !usersError() && users().length === 0) {
+          <p class="mt-4 text-sm text-gray-500">No hay usuarios registrados.</p>
+        }
+
+        @if (users().length > 0) {
+          <div class="mt-4 overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr
+                  class="border-b border-gray-200 text-left text-xs font-medium uppercase tracking-wide text-gray-500"
+                >
+                  <th scope="col" class="pb-2 pr-4">ID</th>
+                  <th scope="col" class="pb-2 pr-4">Nombre</th>
+                  <th scope="col" class="pb-2 pr-4">Usuario</th>
+                  <th scope="col" class="pb-2 pr-4">Correo</th>
+                  <th scope="col" class="pb-2 pr-4">Roles</th>
+                  <th scope="col" class="pb-2 pr-4">Habilitado</th>
+                  <th scope="col" class="pb-2">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (user of users(); track user.id) {
+                  <tr class="border-b border-gray-100 last:border-0">
+                    <td class="py-3 pr-4 text-gray-600">{{ user.id }}</td>
+                    <td class="py-3 pr-4 font-medium text-gray-900">
+                      {{ user.firstName }} {{ user.lastName }}
+                    </td>
+                    <td class="py-3 pr-4 text-gray-700">{{ user.username }}</td>
+                    <td class="py-3 pr-4 text-gray-700">{{ user.email }}</td>
+                    <td class="py-3 pr-4">
+                      <span
+                        class="inline-flex flex-wrap gap-1"
+                        [attr.aria-label]="'Roles: ' + user.roles.join(', ')"
+                      >
+                        @for (role of user.roles; track role) {
+                          <span
+                            class="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700"
+                          >
+                            {{ role }}
+                          </span>
+                        }
+                      </span>
+                    </td>
+                    <td class="py-3 pr-4">
+                      @if (user.enabled) {
+                        <span class="text-green-600" aria-label="Habilitado">✓</span>
+                      } @else {
+                        <span class="text-red-500" aria-label="Deshabilitado">✗</span>
+                      }
+                    </td>
+                    <td class="py-3">
+                      <div class="flex gap-2">
+                        @if (canUpdate()) {
+                          <button
+                            type="button"
+                            (click)="startEdit(user)"
+                            class="rounded-md border border-gray-300 px-3 py-1 text-xs font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
+                            [attr.aria-label]="'Editar usuario ' + user.username"
+                          >
+                            Editar
+                          </button>
+                        }
+                        @if (canDelete()) {
+                          <button
+                            type="button"
+                            (click)="deleteUser(user.id)"
+                            [disabled]="deletingId() === user.id"
+                            class="rounded-md bg-red-600 px-3 py-1 text-xs font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2 disabled:opacity-60"
+                            [attr.aria-label]="'Eliminar usuario ' + user.username"
+                          >
+                            {{ deletingId() === user.id ? 'Eliminando…' : 'Eliminar' }}
+                          </button>
+                        }
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </section>
+    }
+
+    @if (editingUserId() !== null) {
+      <section
+        class="rounded-xl border border-blue-200 bg-white p-6 shadow-sm"
+        aria-labelledby="edit-title"
+      >
+        <h2 id="edit-title" class="text-lg font-semibold text-gray-900">
+          Editar usuario #{{ editingUserId() }}
+        </h2>
+        <p class="mt-1 text-sm text-gray-500">
+          PUT /api/users/:id — requiere user:update o ser el propio usuario.
+        </p>
+
+        <form class="mt-4 space-y-4" (submit)="$event.preventDefault(); saveEdit()" novalidate>
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <label for="edit-firstName" class="block text-sm font-medium text-gray-700"
+                >Nombre</label
+              >
+              <input
+                id="edit-firstName"
+                type="text"
+                autocomplete="off"
+                [formField]="editForm.firstName"
+                class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600"
+              />
+              @if (showEditError(editForm.firstName)) {
+                <p class="mt-1 text-sm text-red-700">
+                  {{ editForm.firstName().errors()[0]?.message }}
+                </p>
+              }
+            </div>
+            <div>
+              <label for="edit-lastName" class="block text-sm font-medium text-gray-700"
+                >Apellido</label
+              >
+              <input
+                id="edit-lastName"
+                type="text"
+                autocomplete="off"
+                [formField]="editForm.lastName"
+                class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600"
+              />
+              @if (showEditError(editForm.lastName)) {
+                <p class="mt-1 text-sm text-red-700">
+                  {{ editForm.lastName().errors()[0]?.message }}
+                </p>
+              }
+            </div>
+            <div>
+              <label for="edit-email" class="block text-sm font-medium text-gray-700">Correo</label>
+              <input
+                id="edit-email"
+                type="email"
+                autocomplete="off"
+                [formField]="editForm.email"
+                class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600"
+              />
+              @if (showEditError(editForm.email)) {
+                <p class="mt-1 text-sm text-red-700">{{ editForm.email().errors()[0]?.message }}</p>
+              }
+            </div>
+            <div>
+              <label for="edit-phone" class="block text-sm font-medium text-gray-700"
+                >Teléfono</label
+              >
+              <input
+                id="edit-phone"
+                type="text"
+                inputmode="numeric"
+                autocomplete="off"
+                [formField]="editForm.phoneNumber"
+                class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600"
+              />
+              @if (showEditError(editForm.phoneNumber)) {
+                <p class="mt-1 text-sm text-red-700">
+                  {{ editForm.phoneNumber().errors()[0]?.message }}
+                </p>
+              }
+            </div>
+            <div>
+              <label for="edit-username" class="block text-sm font-medium text-gray-700"
+                >Usuario</label
+              >
+              <input
+                id="edit-username"
+                type="text"
+                autocomplete="off"
+                [formField]="editForm.username"
+                class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600"
+              />
+              @if (showEditError(editForm.username)) {
+                <p class="mt-1 text-sm text-red-700">
+                  {{ editForm.username().errors()[0]?.message }}
+                </p>
+              }
+            </div>
+            <div>
+              <label for="edit-password" class="block text-sm font-medium text-gray-700">
+                Contraseña (opcional)
+              </label>
+              <input
+                id="edit-password"
+                type="password"
+                autocomplete="new-password"
+                placeholder="Dejar en blanco para no cambiarla"
+                [formField]="editForm.password"
+                class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600"
+              />
+            </div>
+          </div>
+
+          @if (allRoles().length > 0) {
+            <fieldset>
+              <legend class="text-sm font-medium text-gray-700">Roles</legend>
+              <div class="mt-2 flex flex-wrap gap-3">
+                @for (role of allRoles(); track role.id) {
+                  <label class="flex items-center gap-2 text-sm text-gray-700">
+                    <input
+                      type="checkbox"
+                      [checked]="editRoleNames().includes(role.name)"
+                      (change)="toggleEditRole(role.name, isChecked($event))"
+                      class="rounded border-gray-300 text-blue-600 focus:ring-blue-600"
+                    />
+                    {{ role.name }}
+                  </label>
+                }
+              </div>
+            </fieldset>
+          }
+
+          @if (editError(); as error) {
+            <p role="alert" class="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
+              {{ error }}
+            </p>
+          }
+          @if (editSuccess(); as message) {
+            <p role="status" class="rounded-md bg-green-50 px-3 py-2 text-sm text-green-700">
+              {{ message }}
+            </p>
+          }
+
+          <div class="flex gap-3">
+            <button
+              type="submit"
+              [disabled]="editForm().submitting()"
+              class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 disabled:opacity-60"
+            >
+              {{ editForm().submitting() ? 'Guardando…' : 'Guardar cambios' }}
+            </button>
+            <button
+              type="button"
+              (click)="cancelEdit()"
+              class="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
+            >
+              Cancelar
+            </button>
+          </div>
+        </form>
+      </section>
+    }
+
+    <section
+      class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm"
+      aria-labelledby="search-title"
+    >
+      <h2 id="search-title" class="text-lg font-semibold text-gray-900">Buscar usuario por ID</h2>
+      <p class="mt-1 text-sm text-gray-500">GET /api/users/:id — requiere rol USER o ADMIN.</p>
+
+      <form
+        class="mt-4 flex items-start gap-3"
+        (submit)="$event.preventDefault(); onSearch()"
+        novalidate
+      >
+        <div class="flex-1">
+          <label for="search-id" class="block text-sm font-medium text-gray-700">
+            ID de usuario
+          </label>
+          <input
+            id="search-id"
+            type="number"
+            inputmode="numeric"
+            autocomplete="off"
+            [formField]="searchForm.id"
+            [attr.aria-invalid]="showSearchError(searchForm.id) || null"
+            [attr.aria-describedby]="showSearchError(searchForm.id) ? 'search-id-error' : null"
+            class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600"
+          />
+          @if (showSearchError(searchForm.id)) {
+            <p id="search-id-error" class="mt-1 text-sm text-red-700">
+              {{ searchForm.id().errors()[0]?.message }}
+            </p>
+          }
+        </div>
+        <button
+          type="submit"
+          [disabled]="searchForm().submitting()"
+          class="mt-6 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 disabled:opacity-60"
+        >
+          {{ searchForm().submitting() ? 'Buscando…' : 'Buscar' }}
+        </button>
+      </form>
+
+      @if (searchError(); as error) {
+        <p
+          role="alert"
+          aria-live="assertive"
+          class="mt-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700"
+        >
+          {{ error }}
+        </p>
+      }
+
+      @if (foundUser(); as user) {
+        <div class="mt-4 rounded-lg border border-gray-200 p-4" aria-label="Resultado de búsqueda">
+          <h3 class="font-semibold text-gray-900">{{ user.firstName }} {{ user.lastName }}</h3>
+          <dl class="mt-3 grid grid-cols-1 gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
+            <div>
+              <dt class="font-medium text-gray-500">ID</dt>
+              <dd class="text-gray-900">{{ user.id }}</dd>
+            </div>
+            <div>
+              <dt class="font-medium text-gray-500">Documento</dt>
+              <dd class="text-gray-900">{{ user.nationalId }}</dd>
+            </div>
+            <div>
+              <dt class="font-medium text-gray-500">Usuario</dt>
+              <dd class="text-gray-900">{{ user.username }}</dd>
+            </div>
+            <div>
+              <dt class="font-medium text-gray-500">Correo</dt>
+              <dd class="text-gray-900">{{ user.email }}</dd>
+            </div>
+            <div>
+              <dt class="font-medium text-gray-500">Teléfono</dt>
+              <dd class="text-gray-900">{{ user.phoneNumber }}</dd>
+            </div>
+            <div>
+              <dt class="font-medium text-gray-500">Habilitado</dt>
+              <dd [class]="user.enabled ? 'text-green-600' : 'text-red-500'">
+                {{ user.enabled ? 'Sí' : 'No' }}
+              </dd>
+            </div>
+            @if (user.address) {
+              <div class="sm:col-span-2">
+                <dt class="font-medium text-gray-500">Dirección</dt>
+                <dd class="text-gray-900">
+                  {{ user.address.street }} {{ user.address.number }}, {{ user.address.city }}
+                </dd>
+              </div>
+            }
+            <div>
+              <dt class="font-medium text-gray-500">Roles</dt>
+              <dd class="flex flex-wrap gap-1">
+                @for (role of user.roles; track role) {
+                  <span
+                    class="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700"
+                  >
+                    {{ role }}
+                  </span>
+                }
+              </dd>
+            </div>
+            <div>
+              <dt class="font-medium text-gray-500">Permisos</dt>
+              <dd class="flex flex-wrap gap-1">
+                @for (permission of user.permissions; track permission) {
+                  <span
+                    class="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700"
+                  >
+                    {{ permission }}
+                  </span>
+                }
+              </dd>
+            </div>
+            <div>
+              <dt class="font-medium text-gray-500">Creado</dt>
+              <dd class="text-gray-900">{{ user.createdAt | date: 'medium' }}</dd>
+            </div>
+            <div>
+              <dt class="font-medium text-gray-500">Actualizado</dt>
+              <dd class="text-gray-900">{{ user.updatedAt | date: 'medium' }}</dd>
+            </div>
+          </dl>
+        </div>
+      }
+    </section>
+  </div>
+</main>

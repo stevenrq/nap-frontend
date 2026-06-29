@@ -1,0 +1,74 @@
+@if (isAuthenticated()) {
+  <nav class="border-b border-gray-200 bg-white" aria-label="Navegación principal">
+    <div class="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3">
+      <a routerLink="/home" class="text-sm font-semibold text-gray-900">nap</a>
+
+      <ul class="flex flex-wrap items-center gap-1">
+        <li>
+          <a
+            routerLink="/home"
+            routerLinkActive="bg-blue-50 text-blue-700"
+            class="rounded-md px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-100"
+          >
+            Inicio
+          </a>
+        </li>
+        @if (canReadUsers()) {
+          <li>
+            <a
+              routerLink="/users"
+              routerLinkActive="bg-blue-50 text-blue-700"
+              class="rounded-md px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-100"
+            >
+              Usuarios
+            </a>
+          </li>
+        }
+        @if (canReadRoles()) {
+          <li>
+            <a
+              routerLink="/roles"
+              routerLinkActive="bg-blue-50 text-blue-700"
+              class="rounded-md px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-100"
+            >
+              Roles
+            </a>
+          </li>
+        }
+        @if (canReadPermissions()) {
+          <li>
+            <a
+              routerLink="/permissions"
+              routerLinkActive="bg-blue-50 text-blue-700"
+              class="rounded-md px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-100"
+            >
+              Permisos
+            </a>
+          </li>
+        }
+        <li>
+          <a
+            routerLink="/profile"
+            routerLinkActive="bg-blue-50 text-blue-700"
+            class="rounded-md px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-100"
+          >
+            Mi perfil
+          </a>
+        </li>
+      </ul>
+
+      <div class="ml-auto flex items-center gap-3">
+        <span class="text-sm text-gray-500">{{ currentUser() }}</span>
+        <button
+          type="button"
+          (click)="logout()"
+          class="rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
+        >
+          Cerrar sesión
+        </button>
+      </div>
+    </div>
+  </nav>
+}
+
+<router-outlet />

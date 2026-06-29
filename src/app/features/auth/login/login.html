@@ -1,0 +1,80 @@
+<main class="min-h-dvh flex items-center justify-center bg-gray-50 px-4 py-10">
+  <section
+    class="w-full max-w-md rounded-xl border border-gray-200 bg-white p-8 shadow-sm"
+    aria-labelledby="login-title"
+  >
+    <h1 id="login-title" class="text-2xl font-semibold text-gray-900">Iniciar sesión</h1>
+    <p class="mt-1 text-sm text-gray-600">Accede con tu usuario y contraseña.</p>
+
+    @if (justRegistered()) {
+      <p
+        role="status"
+        aria-live="polite"
+        class="mt-4 rounded-md bg-green-50 px-3 py-2 text-sm text-green-700"
+      >
+        Cuenta creada correctamente. Inicia sesión para continuar.
+      </p>
+    }
+
+    @if (serverError(); as error) {
+      <p
+        role="alert"
+        aria-live="assertive"
+        class="mt-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700"
+      >
+        {{ error }}
+      </p>
+    }
+
+    <form class="mt-6 space-y-5" (submit)="$event.preventDefault(); onSubmit()" novalidate>
+      <div>
+        <label for="username" class="block text-sm font-medium text-gray-700">Usuario</label>
+        <input
+          id="username"
+          type="text"
+          autocomplete="username"
+          [formField]="form.username"
+          [attr.aria-invalid]="showError(form.username) || null"
+          [attr.aria-describedby]="showError(form.username) ? 'username-error' : null"
+          class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600"
+        />
+        @if (showError(form.username)) {
+          <p id="username-error" class="mt-1 text-sm text-red-700">
+            {{ form.username().errors()[0]?.message }}
+          </p>
+        }
+      </div>
+
+      <div>
+        <label for="password" class="block text-sm font-medium text-gray-700">Contraseña</label>
+        <input
+          id="password"
+          type="password"
+          autocomplete="current-password"
+          [formField]="form.password"
+          [attr.aria-invalid]="showError(form.password) || null"
+          [attr.aria-describedby]="showError(form.password) ? 'password-error' : null"
+          class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600"
+        />
+        @if (showError(form.password)) {
+          <p id="password-error" class="mt-1 text-sm text-red-700">
+            {{ form.password().errors()[0]?.message }}
+          </p>
+        }
+      </div>
+
+      <button
+        type="submit"
+        [disabled]="form().submitting()"
+        class="w-full rounded-md bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 disabled:opacity-60"
+      >
+        {{ form().submitting() ? 'Ingresando…' : 'Iniciar sesión' }}
+      </button>
+    </form>
+
+    <p class="mt-6 text-center text-sm text-gray-600">
+      ¿No tienes cuenta?
+      <a routerLink="/register" class="font-medium text-blue-600 hover:underline">Crear cuenta</a>
+    </p>
+  </section>
+</main>
